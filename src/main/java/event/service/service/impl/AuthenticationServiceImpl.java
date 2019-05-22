@@ -3,8 +3,9 @@ package event.service.service.impl;
 import event.service.model.User;
 import event.service.repository.UserRepository;
 import event.service.service.AuthenticationService;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -16,28 +17,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
   @Override
   public boolean authenticateUser(String userName, String password) {
-    boolean authenticated = false;
-    Optional<User> user = userRepository.findUserByUserName(userName);
-    if (user.isPresent()) {
-      authenticated = user.get().getPassword().equals(password);
-    }
-    return authenticated;
+    return userRepository.findUserByUserName(userName)
+            .map(user -> user.getPassword().equals(password))
+            .orElse(false);
   }
 
   @Override
   public boolean createNewUser(User user) {
-    boolean created = false;
-    if (!checkIfUserExists(user.getUserName())) {
-      if (user.getUserName() != null) {
-        User savedUser = userRepository.save(user);
-        created = user.equals(savedUser);
-      }
-    }
-    return created;
+    return userRepository.findUserByUserName(user.getUserName())
+            .map(existingUser -> false)
+            .orElse(user.getUserName() != null && userRepository.save(user).equals(user));
   }
 
   @Override
   public boolean checkIfUserExists(String userName) {
     return userRepository.findUserByUserName(userName).isPresent();
+  }
+
+  @Override
+  public List<User> getAllUsers() {
+    return userRepository.findAll();
   }
 }

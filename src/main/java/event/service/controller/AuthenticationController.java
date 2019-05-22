@@ -1,7 +1,6 @@
 package event.service.controller;
 
 import event.service.model.User;
-import event.service.repository.UserRepository;
 import event.service.service.AuthenticationService;
 import java.util.List;
 import javax.validation.constraints.NotNull;
@@ -24,8 +23,6 @@ public class AuthenticationController {
   private final AuthenticationService authenticationService;
 
   @Autowired
-  UserRepository userRepository;
-
   public AuthenticationController(AuthenticationService authenticationService) {
     this.authenticationService = authenticationService;
   }
@@ -33,14 +30,14 @@ public class AuthenticationController {
   @GetMapping("/check/{userName}")
   public ResponseEntity checkUsernameExistence(@PathVariable("userName") String userName) {
     LOG.info("In /check/{}", userName);
-    boolean exists = authenticationService.checkIfUserExists(userName);
-    return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    return authenticationService.checkIfUserExists(userName) ?
+            ResponseEntity.ok().build() :
+            ResponseEntity.notFound().build();
   }
 
   @GetMapping("/authenticate/{userName}/{password}")
   public ResponseEntity authenticateUser(@PathVariable("userName") String userName, @PathVariable("password") String password) {
-    boolean authenticated = authenticationService.authenticateUser(userName, password);
-    return authenticated ?
+    return authenticationService.authenticateUser(userName, password) ?
         ResponseEntity.ok().build() :
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
   }
@@ -56,6 +53,6 @@ public class AuthenticationController {
 
   @GetMapping("/all")
   public ResponseEntity<List<User>> getAllUsers() {
-    return new ResponseEntity<> (userRepository.findAll(), HttpStatus.OK);
+    return ResponseEntity.ok(authenticationService.getAllUsers());
   }
 }
